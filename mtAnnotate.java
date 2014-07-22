@@ -275,16 +275,12 @@ public class mtAnnotate {
       // the old annotation
       String newAnnotation = newLocation;
       if(feature.getDescription().equals("CDS")){
-         System.out.println(feature.getDescription()+"=>"+feature.getSource());
          int index = annotation.indexOf("translation=");
-         System.out.println(annotation.substring(index));
          String CDS;
          if(location.contains("complement"))
             CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getInverse().getSequenceAsString();
          else CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getSequenceAsString();
          String newTranslation = new DNASequence(CDS).getRNASequence().getProteinSequence().getSequenceAsString();
-         System.out.println(CDS);
-         System.out.println(newTranslation);
          String warning = "";
          if(newTranslation.charAt(0) != 'M') warning+="Inferred CDS does not begin with ATG start codon";
          if(newTranslation.contains("*")) warning+=" Inferred CDS contains premature stop codon.";
