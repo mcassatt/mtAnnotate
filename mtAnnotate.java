@@ -248,9 +248,18 @@ public class mtAnnotate {
          out.printf("     %-16s%s%n", feat.type, qualifiers[0]);
          for (int i = 1; i < qualifiers.length; ++i) {
             String[] splitQualifier = qualifiers[i].split("=");
+            //Don't carry over notes as they might not be meaningful
+            if(feat.type.equals("CDS") && 
+                 splitQualifier[0].equals("note")) continue;
             // Printing type of qualifier first
             int lineLen = numSpaces + splitQualifier[0].length() + 3;
-            out.printf("%s/%s=\"", offset, splitQualifier[0]);
+            if(splitQualifier[0].equals("codon_start") || 
+                 splitQualifier[0].equals("transl_table") || 
+                   splitQualifier[0].equals("transl_except")){
+               out.printf("%s/%s=%s\n", offset, splitQualifier[0],
+                                                splitQualifier[1]);
+               continue;
+            }else out.printf("%s/%s=\"", offset, splitQualifier[0]);
             for (int j = 0; j <= splitQualifier[1].length(); ++j) {
                if (lineLen == 79) {
                   out.println();
