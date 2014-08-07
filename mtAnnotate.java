@@ -64,6 +64,83 @@ public class mtAnnotate {
                   + "         filename is given. Off by default.\n");
 
    }
+   public static String vertebrateMtTranslation(String dnaSeq){
+     LinkedHashMap<String,String> trans_table = new LinkedHashMap<String,String>(64);
+     trans_table.put("TTT", "F");
+     trans_table.put("TTC","F");
+     trans_table.put("TTA","L");
+     trans_table.put("TTG","L");
+     trans_table.put("CTT","L");
+     trans_table.put("CTC","L");
+     trans_table.put("CTA","L");
+     trans_table.put("CTG","L");
+     trans_table.put("ATT","I");
+     trans_table.put("ATC","I");
+     trans_table.put("ATA","M");
+     trans_table.put("ATG","M");
+     trans_table.put("GTT","V");
+     trans_table.put("GTC","V");
+     trans_table.put("GTA","V");
+     trans_table.put("GTG","V");
+     trans_table.put("TCT","S");
+     trans_table.put("TCC","S");
+     trans_table.put("TCA","S");
+     trans_table.put("TCG","S");
+     trans_table.put("CCT","P");
+     trans_table.put("CCC","P");
+     trans_table.put("CCA","P");
+     trans_table.put("CCG","P");
+     trans_table.put("ACT","T");
+     trans_table.put("ACC","T");
+     trans_table.put("ACA","T");
+     trans_table.put("ACG","T");
+     trans_table.put("GCT","A");
+     trans_table.put("GCC","A");
+     trans_table.put("GCA","A");
+     trans_table.put("GCG","A");
+     trans_table.put("TAT","Y");
+     trans_table.put("TAC","Y");
+     trans_table.put("TAA","*");
+     trans_table.put("TAG","*");
+     trans_table.put("CAT","H");
+     trans_table.put("CAC","H");
+     trans_table.put("CAA","Q");
+     trans_table.put("CAG","Q");
+     trans_table.put("AAT","N");
+     trans_table.put("AAC","N");
+     trans_table.put("AAA","K");
+     trans_table.put("AAG","K");
+     trans_table.put("GAT","D");
+     trans_table.put("GAC","D");
+     trans_table.put("GAA","E");
+     trans_table.put("GAG","E");
+     trans_table.put("TGT","C");
+     trans_table.put("TGC","C");
+     trans_table.put("TGA","W");
+     trans_table.put("TGG","W");
+     trans_table.put("CGT","R");
+     trans_table.put("CGC","R");
+     trans_table.put("CGA","R");
+     trans_table.put("CGG","R");
+     trans_table.put("AGT","S");
+     trans_table.put("AGC","S");
+     trans_table.put("AGA","*");
+     trans_table.put("AGG","*");
+     trans_table.put("GGT","G");
+     trans_table.put("GGC","G");
+     trans_table.put("GGA","G");
+     trans_table.put("GGG","G");
+     String prot_seq="";
+     for(int i =0; i <dnaSeq.length()-2;i+=3)
+         prot_seq+=trans_table.get(dnaSeq.substring(i,i+3));
+     if(prot_seq.charAt(prot_seq.length()-1)=='*')
+	prot_seq = prot_seq.substring(0,prot_seq.length()-1);
+     return prot_seq;
+}
+
+
+
+
    public static LinkedHashMap<String, DNASequence> getFASTASequence(
          String filename) {
       File fastaFile = new File(filename);
@@ -280,7 +357,7 @@ public class mtAnnotate {
          if(location.contains("complement"))
             CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getInverse().getSequenceAsString();
          else CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getSequenceAsString();
-         String newTranslation = new DNASequence(CDS).getRNASequence().getProteinSequence().getSequenceAsString();
+         String newTranslation =vertebrateMtTranslation(CDS);
          String warning = "";
          if(newTranslation.charAt(0) != 'M') warning+="Inferred CDS does not begin with ATG start codon";
          if(newTranslation.contains("*")) warning+=" Inferred CDS contains premature stop codon.";
