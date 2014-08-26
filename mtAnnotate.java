@@ -1,4 +1,3 @@
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -6,12 +5,20 @@ import java.io.*;
 
 import org.biojava3.core.sequence.*;
 import org.biojava3.core.sequence.io.*;
+import org.biojava3.core.sequence.io.IUPACParser.IUPACTable;
 import org.biojava3.core.sequence.compound.AmbiguityDNACompoundSet;
+import org.biojava3.core.sequence.compound.AminoAcidCompound;
+import org.biojava3.core.sequence.compound.AminoAcidCompoundSet;
 import org.biojava3.core.sequence.compound.DNACompoundSet;
 import org.biojava3.core.sequence.compound.NucleotideCompound;
+import org.biojava3.core.sequence.compound.RNACompoundSet;
 import org.biojava3.core.sequence.features.TextFeature;
 import org.biojava3.core.sequence.loader.GenbankProxySequenceReader;
 import org.biojava3.core.sequence.template.AbstractSequence;
+import org.biojava3.core.sequence.template.CompoundSet;
+import org.biojava3.core.sequence.template.Sequence;
+import org.biojava3.core.sequence.transcription.RNAToAminoAcidTranslator;
+import org.biojava3.core.sequence.transcription.Table.Codon;
 import org.biojava3.core.util.StringManipulationHelper;
 import org.biojava3.alignment.*;
 import org.biojava3.alignment.template.*;
@@ -22,7 +29,9 @@ public class mtAnnotate {
          <NucleotideCompound>(AmbiguityDNACompoundSet.getDNACompoundSet(),
                (short)1,(short)-3);
    public static SimpleGapPenalty gapP = new SimpleGapPenalty((short)5,(short)2);
-
+   public static int table_num=2;
+   
+   
    public static String getDate() {
       Date sysdate = Calendar.getInstance().getTime();
 
@@ -52,6 +61,25 @@ public class mtAnnotate {
                   + "         Specifies GenBank feature types for which FASTA sequence\n"
                   + "         outputs are desired, if not specified, FASTA sequences will\n"
                   + "         will be outputted for all features.\n"
+                  + "      -x table_number\n"
+                  + "         Integer value indicating which of the following translation\n"
+                  + "         tables to use when outputting CDS features:\n"
+                  +"             1 - UNIVERSAL\n"
+                  +"             2 - VERTEBRATE_MITOCHONDRIAL\n"
+                  +"             3 - YEAST_MITOCHONDRIAL\n"
+                  +"             4 - MOLD_MITOCHONDRIAL\n"
+                  +"             5 - INVERTEBRATE_MITOCHONDRIAL\n"
+                  +"             6 - CILIATE_NUCLEAR\n"
+                  +"             9 - ECHINODERM_MITOCHONDRIAL\n"
+                  +"             10 - EUPLOTID_NUCLEAR\n"
+                  +"             11 - BACTERIAL\n"
+                  +"             12 - ALTERNATIVE_YEAST_NUCLEAR\n"
+                  +"             13 - ASCIDIAN_MITOCHONDRIAL\n"
+                  +"             14 - FLATWORM_MITOCHONDRIAL\n"
+                  +"             15 - BLEPHARISMA_MACRONUCLEAR\n"
+                  +"             16 - 2CHLOROPHYCEAN_MITOCHONDRIAL\n"
+                  +"             21 - TREMATODE_MITOCHONDRIAL\n"
+                  +"             23 - SCENEDESMUS_MITOCHONDRIAL\n"
                   + "      -g filename\n"
                   + "         Specifies the name of the GenBank output file, defaults\n"
                   + "         to stdout.\n"
@@ -64,80 +92,17 @@ public class mtAnnotate {
                   + "         filename is given. Off by default.\n");
 
    }
-   public static String vertebrateMtTranslation(String dnaSeq){
-     LinkedHashMap<String,String> trans_table = new LinkedHashMap<String,String>(64);
-     trans_table.put("TTT", "F");
-     trans_table.put("TTC","F");
-     trans_table.put("TTA","L");
-     trans_table.put("TTG","L");
-     trans_table.put("CTT","L");
-     trans_table.put("CTC","L");
-     trans_table.put("CTA","L");
-     trans_table.put("CTG","L");
-     trans_table.put("ATT","I");
-     trans_table.put("ATC","I");
-     trans_table.put("ATA","M");
-     trans_table.put("ATG","M");
-     trans_table.put("GTT","V");
-     trans_table.put("GTC","V");
-     trans_table.put("GTA","V");
-     trans_table.put("GTG","V");
-     trans_table.put("TCT","S");
-     trans_table.put("TCC","S");
-     trans_table.put("TCA","S");
-     trans_table.put("TCG","S");
-     trans_table.put("CCT","P");
-     trans_table.put("CCC","P");
-     trans_table.put("CCA","P");
-     trans_table.put("CCG","P");
-     trans_table.put("ACT","T");
-     trans_table.put("ACC","T");
-     trans_table.put("ACA","T");
-     trans_table.put("ACG","T");
-     trans_table.put("GCT","A");
-     trans_table.put("GCC","A");
-     trans_table.put("GCA","A");
-     trans_table.put("GCG","A");
-     trans_table.put("TAT","Y");
-     trans_table.put("TAC","Y");
-     trans_table.put("TAA","*");
-     trans_table.put("TAG","*");
-     trans_table.put("CAT","H");
-     trans_table.put("CAC","H");
-     trans_table.put("CAA","Q");
-     trans_table.put("CAG","Q");
-     trans_table.put("AAT","N");
-     trans_table.put("AAC","N");
-     trans_table.put("AAA","K");
-     trans_table.put("AAG","K");
-     trans_table.put("GAT","D");
-     trans_table.put("GAC","D");
-     trans_table.put("GAA","E");
-     trans_table.put("GAG","E");
-     trans_table.put("TGT","C");
-     trans_table.put("TGC","C");
-     trans_table.put("TGA","W");
-     trans_table.put("TGG","W");
-     trans_table.put("CGT","R");
-     trans_table.put("CGC","R");
-     trans_table.put("CGA","R");
-     trans_table.put("CGG","R");
-     trans_table.put("AGT","S");
-     trans_table.put("AGC","S");
-     trans_table.put("AGA","*");
-     trans_table.put("AGG","*");
-     trans_table.put("GGT","G");
-     trans_table.put("GGC","G");
-     trans_table.put("GGA","G");
-     trans_table.put("GGG","G");
-     String prot_seq="";
-     for(int i =0; i <dnaSeq.length()-2;i+=3)
-         prot_seq+=trans_table.get(dnaSeq.substring(i,i+3));
-     if(prot_seq.charAt(prot_seq.length()-1)=='*')
-	prot_seq = prot_seq.substring(0,prot_seq.length()-1);
-     return prot_seq;
-}
 
+   public static String getTranslation(Sequence<NucleotideCompound> CDS){
+	   IUPACTable trans_table = IUPACParser.getInstance().getTable(table_num);
+	   CompoundSet<Codon> codon_list = trans_table.getCodonCompoundSet(DNACompoundSet.getDNACompoundSet(), AminoAcidCompoundSet.getAminoAcidCompoundSet());
+	   RNAToAminoAcidTranslator trans = new RNAToAminoAcidTranslator(
+			   new ProteinSequenceCreator(AminoAcidCompoundSet.getAminoAcidCompoundSet()), 
+			   DNACompoundSet.getDNACompoundSet(), codon_list, 
+			   AminoAcidCompoundSet.getAminoAcidCompoundSet(), trans_table, true, true, true);
+	   List<Sequence<AminoAcidCompound>> peptide = trans.createSequences(CDS);
+	   return peptide.get(0).getSequenceAsString();
+   }
 
 
 
@@ -362,11 +327,11 @@ public class mtAnnotate {
       String newAnnotation = newLocation;
       if(feature.getDescription().equals("CDS")){
          int index = annotation.indexOf("translation=");
-         String CDS;
+         Sequence<NucleotideCompound> CDS;
          if(location.contains("complement"))
-            CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getInverse().getSequenceAsString();
-         else CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getSequenceAsString();
-         String newTranslation =vertebrateMtTranslation(CDS);
+            CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd).getInverse();
+         else CDS =alignment.getQuery().getOriginalSequence().getSubSequence(fastaStart, fastaEnd);
+         String newTranslation = getTranslation(CDS);
          String warning = "";
          if(newTranslation.charAt(0) != 'M') warning+="Inferred CDS does not begin with ATG start codon";
          if(newTranslation.contains("*")) warning+=" Inferred CDS contains premature stop codon.";
@@ -530,6 +495,20 @@ public class mtAnnotate {
          if (args[argi].charAt(0) == '-'){
             char opt = args[argi].charAt(1);
             switch(opt){
+            case 'h':
+            	printHelp();
+            	System.exit(0);
+            	break;
+            case 'x':
+            	if(argi==args.length-3||args[argi+1].charAt(0)=='-'){
+                    System.err.println("-x option requires "
+                          +"an integer argument specifying the desired"
+                          + " translation table. See help message (-h)"
+                          + " for list of available tables.");
+                    System.err.println(usage);
+                    System.exit(1);
+                 }else table_num=Integer.parseInt(args[++argi]);
+                 break;
             case 't': 
                int j = 1;
                for(;argi+j<args.length-2;++j){
@@ -537,7 +516,7 @@ public class mtAnnotate {
                   wanted_features.add(args[j+argi]);
                   //If j =1 when exiting for loop, then loop only ran through once
                }if(j==1){
-                  System.err.println("-f option requires "
+                  System.err.println("-t option requires "
                         +"at least one feature type to be "
                         +"specified.");
                   System.err.println(usage);
